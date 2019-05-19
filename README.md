@@ -1,4 +1,4 @@
 # CMSC 320 project
 
-2019 spirng projevt with Ryan Havel, Isabelle Stevens
+2019 spring project with Ryan Havel, Isabelle Stevens, and Matthew Aird
 
