@@ -95,6 +95,21 @@ plot_data %>%
 
 
 ## 4. Machine Learning
+Linear Model
+$$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * Income_Per_Person + \beta_4 * Life Expectancy$$
+```{r warning = FALSE, message = FALSE}
+fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp, data = birthrate_df)
+broom::tidy(fit) %>% knitr::kable() 
+```
+Fitted vs. Residuals
+```{r warning = FALSE, message = FALSE}
+augmentedData %>% ggplot(aes(x = .fitted, y = .resid)) + geom_violin()
+```
+
+Year vs. Residuals
+```{r warning = FALSE, message = FALSE}
+augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
+```
 
 ## Conclusion 
 
