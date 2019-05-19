@@ -63,6 +63,8 @@ birthrate_df <- children_per_woman_total_fertility %>%
   gather(year, birthrate, -country, convert = TRUE) %>% 
   inner_join(gapdata, by = c("country", "year"))  %>%  
   inner_join(income_df, by = c("country", "year"))
+  
+birthrate_df
 ```
 
 ## 3. Exploratory Data Analysis
