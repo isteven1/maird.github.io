@@ -20,11 +20,13 @@ library(broom)
 
 ## 1. Gathering Data
 The first step in the data science pipeline is data curation. This means acquiring all the data that we need to perform our analyses, and we can't perform analysis without it. For this example, we are looking at the relationship between a country's birthrate and factors such as GDP, income, and life expectancy for those countries. To do this, we need to pull Gapminder data from three sources:
+
 (1) A CSV file containing birthrate per country by year that can be downloaded from this link under the indicator "Babies per woman":
     https://www.gapminder.org/data/
 (2) A CSV file containing data on income per person that can be downloaded from this link under the indicator "Income per person":
     https://www.gapminder.org/data/
 (3) and a dataframe containing life expectancy per country by year from the gapminder library.
+
 ```{r warning = FALSE, message = FALSE}
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
 children_per_woman_total_fertility
