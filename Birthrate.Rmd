@@ -33,7 +33,7 @@ income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_pe
 income_per_person_gdppercapita_ppp_inflation_adjusted
 
 gapdata <- data.frame(gapminder)
-gapdata
+head(gapdata)
 ```
 
 ## Tidying Data
