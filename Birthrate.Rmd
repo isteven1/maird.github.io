@@ -25,7 +25,9 @@ The first step in the data science pipeline is data curation. This means acquiri
     https://www.gapminder.org/data/
 (2) A CSV file containing data on income per person that can be downloaded from this link under the indicator "Income per person":
     https://www.gapminder.org/data/
-(3) and a dataframe containing life expectancy per country by year from the gapminder library.
+(3) A CSV file containing data on child mortality per 1000 people that can be downloaded from this link under the indicator "Child mortality":
+    https://www.gapminder.org/data/
+(4) and a dataframe containing life expectancy per country by year from the gapminder library.
 
 ```{r warning = FALSE, message = FALSE}
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
@@ -36,41 +38,57 @@ income_per_person_gdppercapita_ppp_inflation_adjusted
 
 gapdata <- data.frame(gapminder)
 head(gapdata)
+
+child_mortality_0_5_year_olds_dying_per_1000_born <- read_csv("child_mortality_0_5_year_olds_dying_per_1000_born.csv")
+head(child_mortality_0_5_year_olds_dying_per_1000_born)
+
 ```
 
 ## Tidying Data
 
-Tidying data is a point in the pipeline where you must change aspects of the datasets to handle missing data and to fit the model of a rectangular data structure. This means that each attribute must form a column, each entity must form a row, and each type of entity must form a table. There were 2 main operations that need to be done to our data in order for our analysis to be accurate:
+Tidying data is a point in the pipeline where you must change aspects of the datasets to handle missing data and to fit the model of a rectangular data structure. This means that each attribute must form a column, each entity must form a row, and each type of entity must form a table. There are 4 main operations that need to be done to our data in order for our analysis to be accurate:
 
-1. Fixing the columns
-2. Fixing the country names
+1. Fixing the country names
+2. Fixing the columns
+3. Standardizing numbers
 3. Joining datasets
 
-First, the three data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first two data sets by making year into a singular column and converting the data into a numeric type.
 
-Secondly, there were several naming inconsistencies with countries where some data sets called Yemem "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
+First, there were several naming inconsistencies with countries where some data sets called Yemem "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
 
-Lastly, we need to join all three tables into a single dataframe to make analysis go more smoothly. 
-
-```{r warning = FALSE, message = FALSE}
-#Convert the Column "country" from a factor to a string of characters
-gapdata$country <- as.character(gapdata$country) 
-
-#Fix inconsistency for the country Yemen in gapdata
+```{r}
+gapdata$country <- as.character(gapdata$country)
 gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
+```
 
-#Tidy data
+
+Secondly, the three data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first two data sets by making year into a singular column and converting the data into a numeric type.
+
+```{r}
 income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
   gather(year, income_per_person, -country, convert = TRUE)
-
-#Tidy data for children_per_woman_total_fertility and then join with the other datasets
 birthrate_df <- children_per_woman_total_fertility %>% 
-  gather(year, birthrate, -country, convert = TRUE) %>% 
-  inner_join(gapdata, by = c("country", "year"))  %>%  
-  inner_join(income_df, by = c("country", "year"))
-  
-birthrate_df
+  gather(year, birthrate, -country, convert = TRUE)
+
+mortality_df <- child_mortality_0_5_year_olds_dying_per_1000_born %>%
+  gather(year, child_mort_per, -country, convert = TRUE)
 ```
+
+Then, we need to make our child mortality dataset a percentage. We do this to simplify our data and make it more understandable. To do this, we divide each country by 1000 because the original number given is child deaths per 1000 children.
+```{r}
+mortality_df$child_mort_per <- mortality_df$child_mort_per/1000
+```
+
+
+
+Lastly, we need to join all four tables into a single dataframe to make analysis go more smoothly. 
+
+```{r warning = FALSE, message = FALSE}
+birthrate_df <- birthrate_df %>% 
+  inner_join(gapdata, by = c("country", "year"))  %>%  
+  inner_join(income_df, by = c("country", "year")) %>%
+  inner_join(mortality_df, by = c("country", "year"))
+  
 
 ## 3. Exploratory Data Analysis
 Now that our data has been tidied and formatted correctly, we can begin some of our analysis. Exploratory Data Analysis is a crucial part of the data science pipeline. Here we great visual aids to notice any trends or patterns with the data. This is where we will see if certain attributes affect overall birthrates. 
