@@ -3,6 +3,10 @@ title: "Birthrate by Country"
 author: "Matthew Aird, Isabelle Stevens, Ryan Havel"
 output: html_document
 ---
+## Introduction
+Did you know that over 300,000 babies are born each day? That comes down to over 200 babies a minute all around the world! There is a really good chance that you will have a child during your lifetime. There is also a good chance you will have a second child. But what about a third? A fourth? Luckily for you, we will discuss how many births a woman will have in her lifetime depending on several factors. For our analysis, we have combined three datasets consisting of information about hundreds of countries spanning all of the continents to get to a conclusion. The results are interesting. Keep reading to find out the secrets of birthrates. 
+
+Here's A Link For More Fun Facts About Birthrates: https://www.childtrends.org/indicators/fertility-and-birth-rates 
 
 ## Required Libraries
 These libaries are needed to follow along with this tutorial. 
@@ -50,7 +54,14 @@ birthrate_df <- children_per_woman_total_fertility %>%
 ```
 
 ## 3. Exploratory Data Analysis
-
+Birthrate vs. Income Per Person
+```{r warning = FALSE, message = FALSE}
+birthrate_df %>% ggplot(aes(x = birthrate, y = log10(income_per_person))) + geom_point() + labs(title = "Birthrate vs. Income", x = "Birthrate", y = "Income")
+```
+Birthrate vs. Life Expectancy
+```{r warning = FALSE, message = FALSE}
+birthrate_df %>% ggplot(aes(x = birthrate, y = lifeExp)) + geom_point() + labs(title = "Birthrate vs. Life Expectancy", x = "Birthrate", y = "Life Expectancy")
+```
 ## 4. Machine Learning
 
 ## Conclusion 
