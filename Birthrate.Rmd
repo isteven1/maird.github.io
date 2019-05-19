@@ -79,8 +79,6 @@ Then, we need to make our child mortality dataset a percentage. We do this to si
 mortality_df$child_mort_per <- mortality_df$child_mort_per/1000
 ```
 
-
-
 Lastly, we need to join all four tables into a single dataframe to make analysis go more smoothly. 
 
 ```{r warning = FALSE, message = FALSE}
@@ -106,6 +104,14 @@ std_birth
 ### 3.1 Factors to consider
 
 Here we look at several analyses that try to understand what factors lead to the increase or decrease in a country's birthrate.
+
+#### Birthrate vs. Continent 
+```{r}
+birthrate_df %>%
+  ggplot(aes(x=continent, y=birthrate)) +
+  geom_violin() + 
+  labs(title="Birth Rate versus Continent", x="Continent", y="Birth Rate")
+```
 
 #### Birthrate vs. Income Per Person
 ```{r warning = FALSE, message = FALSE}
@@ -135,6 +141,14 @@ plot_data %>%
     labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
 ```
 
+```{r}
+birthrate_df %>%
+  ggplot(aes(x= year, y=birthrate, color = continent)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title="Birth Rate Over Time", x="Year", y="Birth Rate")
+```
+
 #### Birthrate vs. Child Mortality
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% 
@@ -142,7 +156,6 @@ birthrate_df %>%
     geom_point() + geom_smooth(lm = loess) +
     labs(title = "Birthrate vs. Child Mortality", x = "Child Mortality(percentage)", y = "Birthrate")
 ```
-
 
 ## 4. Machine Learning
 Linear Model
