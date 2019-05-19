@@ -15,6 +15,7 @@ library(gapminder)
 library(tidyverse)
 library(tidyr)
 library(readr)
+library(broom)
 ```
 
 ## 1. Gathering Data
@@ -79,6 +80,16 @@ birthrate_df %>%
     geom_point() + 
     labs(title = "Birthrate vs. Life Expectancy", x = "Birthrate", y = "Life Expectancy")
 ```
+Average Birthrate vs. year
+```{r warning = FALSE, message = FALSE}
+plot_data <- group_by(birthrate_df, year) %>% summarize(mean_birth = mean(birthrate)) 
+plot_data %>%
+    ggplot(aes(x = year, y = mean_birth)) + 
+    geom_smooth() +
+    labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
+```
+
+
 ## 4. Machine Learning
 
 ## Conclusion 
