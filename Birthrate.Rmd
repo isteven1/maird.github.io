@@ -46,7 +46,7 @@ Tidying data is a point in the pipeline where you must change aspects of the dat
 
 1. Fixing the country names
 2. Fixing the columns
-3. Standardizing numbers
+3. Transforming numbers
 3. Joining datasets
 
 
@@ -153,12 +153,12 @@ birthrate_df %>%
 
 ## 4. Machine Learning
 Linear Model
-$$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy$$
+$$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy + \beta_5 * ChildMortality$$
 ```{r warning = FALSE, message = FALSE}
-
-fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp, data = birthrate_df)
+fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp + child_mort_per, data = birthrate_df)
 broom::tidy(fit) %>% knitr::kable() 
 ```
+
 Fitted vs. Residuals
 ```{r warning = FALSE, message = FALSE}
 augmentedData <- fit %>% augment() %>% select(-.se.fit, -.hat, -.sigma, -.cooksd, -.std.resid)
