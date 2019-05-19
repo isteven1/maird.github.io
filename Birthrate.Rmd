@@ -53,14 +53,17 @@ Secondly, there were several naming inconsistencies with countries where some da
 Lastly, we need to join all three tables into a single dataframe to make analysis go more smoothly. 
 
 ```{r warning = FALSE, message = FALSE}
+#Convert the Column "country" from a factor to a string of characters
+gapdata$country <- as.character(gapdata$country) 
 
-gapdata$country <- as.character(gapdata$country)
-
+#Fix inconsistency for the country Yemen in gapdata
 gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
 
+#Tidy data
 income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
   gather(year, income_per_person, -country, convert = TRUE)
 
+#Tidy data for children_per_woman_total_fertility and then join with the other datasets
 birthrate_df <- children_per_woman_total_fertility %>% 
   gather(year, birthrate, -country, convert = TRUE) %>% 
   inner_join(gapdata, by = c("country", "year"))  %>%  
@@ -70,7 +73,7 @@ birthrate_df
 ```
 
 ## 3. Exploratory Data Analysis
-Now that our data has been tidied and formatted correctly, we can begin some of our analysis.
+Now that our data has been tidied and formatted correctly, we can begin some of our analysis. Exploratory Data Analysis is a crucial part of the data science pipeline. Here we great visual aids to notice any trends or patterns with the data. This is where we will see if certain attributes affect overall birthrates. 
 
 
 Let's look at our original mean and standard deviation before we do any data transformations.
@@ -115,7 +118,7 @@ plot_data %>%
 
 ## 4. Machine Learning
 Linear Model
-$$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * Income_Per_Person + \beta_4 * Life Expectancy$$
+$$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy$$
 ```{r warning = FALSE, message = FALSE}
 fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp, data = birthrate_df)
 broom::tidy(fit) %>% knitr::kable() 
