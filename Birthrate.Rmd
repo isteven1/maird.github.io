@@ -1,27 +1,37 @@
 ---
-title: "Birthrate by country"
+title: "Birthrate by Country"
 author: "Matthew Aird, Isabelle Stevens, Ryan Havel"
 output: html_document
 ---
 
-## Gather Data
-```{r warning = FALSE, message = FALSE}
+## Required Libraries
+These libaries are needed to follow along with this tutorial. 
+```{r, warning = FALSE, message = FALSE}
 library(gapminder)
 library(tidyverse)
 library(tidyr)
 library(readr)
+```
 
-gapdata <- data.frame(gapminder)
-gapdata
-
+## 1. Gathering Data
+The first step in the data science pipeline is data curation. This means acquiring all the data that we need to perform our analyses, and we can't perform analysis without it. For this example, we are looking at the relationship between a country's birthrate and factors such as GDP, income, and life expectancy for those countries. To do this, we need to pull Gapminder data from three sources:
+(1) A CSV file containing birthrate per country by year that can be downloaded from this link under the indicator "Babies per woman":
+    https://www.gapminder.org/data/
+(2) A CSV file containing data on income per person that can be downloaded from this link under the indicator "Income per person":
+    https://www.gapminder.org/data/
+(3) and a dataframe containing life expectancy per country by year from the gapminder library.
+```{r warning = FALSE, message = FALSE}
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
 children_per_woman_total_fertility
 
 income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
 income_per_person_gdppercapita_ppp_inflation_adjusted
+
+gapdata <- data.frame(gapminder)
+gapdata
 ```
 
-## Tidying Data
+## 2. Tidying Data
 
 ```{r warning = FALSE, message = FALSE}
 
@@ -38,4 +48,10 @@ birthrate_df <- children_per_woman_total_fertility %>%
   inner_join(income_df, by = c("country", "year"))
 
 ```
+
+## 3. Exploratory Data Analysis
+
+## 4. Machine Learning
+
+## Conclusion 
 
