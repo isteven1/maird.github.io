@@ -32,16 +32,12 @@ The first step in the data science pipeline is data curation. This means acquiri
 ```{r warning = FALSE, message = FALSE}
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
 children_per_woman_total_fertility
-
 income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
 income_per_person_gdppercapita_ppp_inflation_adjusted
-
 gapdata <- data.frame(gapminder)
 head(gapdata)
-
 child_mortality_0_5_year_olds_dying_per_1000_born <- read_csv("child_mortality_0_5_year_olds_dying_per_1000_born.csv")
 head(child_mortality_0_5_year_olds_dying_per_1000_born)
-
 ```
 
 ## Tidying Data
@@ -69,14 +65,13 @@ income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>%
   gather(year, income_per_person, -country, convert = TRUE)
 birthrate_df <- children_per_woman_total_fertility %>% 
   gather(year, birthrate, -country, convert = TRUE)
-
 mortality_df <- child_mortality_0_5_year_olds_dying_per_1000_born %>%
   gather(year, child_mort_per, -country, convert = TRUE)
 ```
 
 Then, we need to make our child mortality dataset a percentage. We do this to simplify our data and make it more understandable. To do this, we divide each country by 1000 because the original number given is child deaths per 1000 children.
 ```{r}
-mortality_df$child_mort_per <- mortality_df$child_mort_per/1000
+mortality_df$child_mort_per <- mortality_df$child_mort_per/10
 ```
 
 
@@ -88,42 +83,41 @@ birthrate_df <- birthrate_df %>%
   inner_join(gapdata, by = c("country", "year"))  %>%  
   inner_join(income_df, by = c("country", "year")) %>%
   inner_join(mortality_df, by = c("country", "year"))
-  
+```  
 
 ## 3. Exploratory Data Analysis
 Now that our data has been tidied and formatted correctly, we can begin some of our analysis. Exploratory Data Analysis is a crucial part of the data science pipeline. Here we great visual aids to notice any trends or patterns with the data. This is where we will see if certain attributes affect overall birthrates. 
-
-
 Let's look at our original mean and standard deviation before we do any data transformations.
+
 ```{r}
 mean_birth <- mean(birthrate_df$birthrate)
 mean_birth
-
 std_birth <- sd(birthrate_df$birthrate)
 std_birth
 ```
 
 ### 3.1 Factors to consider
-
 Here we look at several analyses that try to understand what factors lead to the increase or decrease in a country's birthrate.
 
 #### Birthrate vs. Income Per Person
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% 
-    ggplot(aes(x = birthrate, y = log10(income_per_person))) + 
+    ggplot(aes(x = log10(income_per_person), y = birthrate)) + 
     geom_point() + geom_smooth(lm=loess) +
-    labs(title = "Birthrate vs. Income", x = "Birthrate", y = "Income")
+    labs(title = "Birthrate vs. Income", x = "Income", y = "Birthrate")
 ```
+
 In the graph above we see that as birthrate increases, income per person decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods. Income per person is a contributing factor to birthrate.
 
 
 #### Birthrate vs. Life Expectancy
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% 
-    ggplot(aes(x = birthrate, y = lifeExp)) + 
+    ggplot(aes(x = lifeExp, y = birthrate)) + 
     geom_point() + geom_smooth(lm=loess) +
-    labs(title = "Birthrate vs. Life Expectancy", x = "Birthrate", y = "Life Expectancy")
+    labs(title = "Birthrate vs. Life Expectancy", x = "Life Expectancy", y = "Birthrate")
 ```
+
 The above graph compares birthrate and life expectancy. Our initial intuition is that life expectancy would affect birthrates. Holding birthrate as our independent variable, it seems that the life expectancy decreases as birthrates increase in a linear fashion. This is an interesting trend that makes sense. As mentioned before, many third-world countries tend to have lower life expectancies. These countries don't have access to the many contraceptive methods and education that more developed nations have. Overall, Life Expectancy seems to be a good contributing factor to birthrate.
 
 #### Average Birthrate vs. year
@@ -148,11 +142,13 @@ birthrate_df %>%
 Linear Model
 $$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy$$
 ```{r warning = FALSE, message = FALSE}
+
 fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp, data = birthrate_df)
 broom::tidy(fit) %>% knitr::kable() 
 ```
 Fitted vs. Residuals
 ```{r warning = FALSE, message = FALSE}
+augmentedData <- fit %>% augment() %>% select(-.se.fit, -.hat, -.sigma, -.cooksd, -.std.resid)
 augmentedData %>% ggplot(aes(x = .fitted, y = .resid)) + geom_violin()
 ```
 
@@ -161,5 +157,4 @@ Year vs. Residuals
 augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
 ```
 
-## Conclusion 
-
+## Conclusion
