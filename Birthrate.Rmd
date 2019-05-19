@@ -11,9 +11,9 @@ library(tidyr)
 gapdata<-data.frame(gapminder)
 
 library(readr)
-children_per_woman_total_fertility <- read_csv("C:/Users/Maird Laptop/Downloads/CMSC320/Final Project/children_per_woman_total_fertility.csv")
+children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
 
-income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("C:/Users/Maird Laptop/Downloads/CMSC320/Final Project/income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
+income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
 
 ```
 
