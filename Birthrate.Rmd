@@ -35,7 +35,16 @@ gapdata <- data.frame(gapminder)
 gapdata
 ```
 
-## 2. Tidying Data
+## Tidying Data
+
+There were 2 main operations that need to be done to our data in order for our analysis to be accurate:
+
+1. Fixing the columns
+2. Fixing the country names
+
+The three data sets used had differing column semantics with how the birthrate and income per person had each year as its own column for each country. This differs from the gapminder data package which has year as a singular year column. We fix this discrepancy by using the gather function. This changes the first two data sets by making year into a singular column and converting the data into a numeric type.
+
+There were several naming inconsistencies with countries where some data sets called Yemem "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
 
 ```{r warning = FALSE, message = FALSE}
 
