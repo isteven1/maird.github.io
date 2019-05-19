@@ -27,10 +27,8 @@ The first step in the data science pipeline is data curation. This means acquiri
 ```{r warning = FALSE, message = FALSE}
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
 children_per_woman_total_fertility
-
 income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
 income_per_person_gdppercapita_ppp_inflation_adjusted
-
 gapdata <- data.frame(gapminder)
 gapdata
 ```
@@ -42,24 +40,19 @@ There were 2 main operations that need to be done to our data in order for our a
 1. Fixing the columns
 2. Fixing the country names
 
-The three data sets used had differing column semantics with how the birthrate and income per person had each year as its own column for each country. This differs from the gapminder data package which has year as a singular year column. We fix this discrepancy by using the gather function. This changes the first two data sets by making year into a singular column and converting the data into a numeric type.
+The three data sets we used had differing column semantics. This is seen with how the birthrate and income per person had each year as its own column for each country. This differs from the gapminder data package which has year as a singular year column. We fix this discrepancy by using the gather function. This changes the first two data sets by making year into a singular column and converting the data into a numeric type.
 
 There were several naming inconsistencies with countries where some data sets called Yemem "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
 
 ```{r warning = FALSE, message = FALSE}
-
 gapdata$country <- as.character(gapdata$country)
-
 gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
-
 income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
   gather(year, income_per_person, -country, convert = TRUE)
-
 birthrate_df <- children_per_woman_total_fertility %>% 
   gather(year, birthrate, -country, convert = TRUE) %>% 
   inner_join(gapdata, by = c("country", "year"))  %>%  
   inner_join(income_df, by = c("country", "year"))
-
 ```
 
 ## 3. Exploratory Data Analysis
@@ -71,7 +64,24 @@ Birthrate vs. Life Expectancy
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% ggplot(aes(x = birthrate, y = lifeExp)) + geom_point() + labs(title = "Birthrate vs. Life Expectancy", x = "Birthrate", y = "Life Expectancy")
 ```
+
+```{r warning = FALSE, message = FALSE}
+plot_data <- group_by(birthrate_df, year) %>% summarize(mean_birth = mean(birthrate)) 
+plot_data %>% ggplot(aes(x = year, y = mean_birth)) + geom_smooth() + labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
+```
+
+
+
+
+
 ## 4. Machine Learning
 
-## Conclusion 
+```{r}
+fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp, data = birthrate_df)
+broom::tidy(fit) %>% knitr::kable() 
+```
 
+
+
+
+## Conclusion 
