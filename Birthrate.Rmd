@@ -70,21 +70,40 @@ birthrate_df
 ```
 
 ## 3. Exploratory Data Analysis
-Birthrate vs. Income Per Person
+Now that our data has been tidied and formatted correctly, we can begin some of our analysis.
+
+
+Let's look at our original mean and standard deviation before we do any data transformations.
+```{r}
+mean_birth <- mean(birthrate_df$birthrate)
+mean_birth
+
+std_birth <- sd(birthrate_df$birthrate)
+std_birth
+```
+
+### 3.1 Factors to consider
+
+Here we look at several analyses that try to understand what factors lead to the increase or decrease in a country's birthrate.
+
+#### Birthrate vs. Income Per Person
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% 
     ggplot(aes(x = birthrate, y = log10(income_per_person))) + 
-    geom_point() + 
+    geom_point() + geom_smooth(lm=loess) +
     labs(title = "Birthrate vs. Income", x = "Birthrate", y = "Income")
 ```
-Birthrate vs. Life Expectancy
+In the graph above we see that as birthrate increases, income per person decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods.
+
+
+#### Birthrate vs. Life Expectancy
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% 
     ggplot(aes(x = birthrate, y = lifeExp)) + 
-    geom_point() + 
+    geom_point() + geom_smooth(lm=loess) +
     labs(title = "Birthrate vs. Life Expectancy", x = "Birthrate", y = "Life Expectancy")
 ```
-Average Birthrate vs. year
+#### Average Birthrate vs. year
 ```{r warning = FALSE, message = FALSE}
 plot_data <- group_by(birthrate_df, year) %>% summarize(mean_birth = mean(birthrate)) 
 plot_data %>%
