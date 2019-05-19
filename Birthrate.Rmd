@@ -4,30 +4,38 @@ author: "Matthew Aird, Isabelle Stevens, Ryan Havel"
 output: html_document
 ---
 
-```{r}
+## Gather Data
+```{r warning = FALSE, message = FALSE}
 library(gapminder)
 library(tidyverse)
 library(tidyr)
-gapdata<-data.frame(gapminder)
-
 library(readr)
+
+gapdata <- data.frame(gapminder)
+gapdata
+
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
+children_per_woman_total_fertility
 
 income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
-
+income_per_person_gdppercapita_ppp_inflation_adjusted
 ```
 
 ## Tidying Data
 
-```{r}
+```{r warning = FALSE, message = FALSE}
 
 gapdata$country <- as.character(gapdata$country)
 
 gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
 
-income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% gather(year, income_per_person, -country, convert = TRUE)
+income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
+  gather(year, income_per_person, -country, convert = TRUE)
 
-birthrate_df <- children_per_woman_total_fertility %>% gather(year, birthrate, -country, convert = TRUE) %>% inner_join(gapdata, by = c("country", "year"))  %>%  inner_join(income_df, by = c("country", "year"))
+birthrate_df <- children_per_woman_total_fertility %>% 
+  gather(year, birthrate, -country, convert = TRUE) %>% 
+  inner_join(gapdata, by = c("country", "year"))  %>%  
+  inner_join(income_df, by = c("country", "year"))
 
 ```
 
