@@ -135,6 +135,14 @@ plot_data %>%
     labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
 ```
 
+#### Birthrate vs. Child Mortality
+```{r warning = FALSE, message = FALSE}
+birthrate_df %>% 
+    ggplot(aes(x = child_mort_per, y = birthrate)) + 
+    geom_point() + geom_smooth(lm = loess) +
+    labs(title = "Birthrate vs. Child Mortality", x = "Child Mortality(percentage)", y = "Birthrate")
+```
+
 
 ## 4. Machine Learning
 Linear Model
