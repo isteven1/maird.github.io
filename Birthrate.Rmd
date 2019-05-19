@@ -17,7 +17,14 @@ income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("C:/Users/Mair
 
 ```
 
+## Tidying Data
+
 ```{r}
+
+gapdata$country <- as.character(gapdata$country)
+
+gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
+
 income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% gather(year, income_per_person, -country, convert = TRUE)
 
 birthrate_df <- children_per_woman_total_fertility %>% gather(year, birthrate, -country, convert = TRUE) %>% inner_join(gapdata, by = c("country", "year"))  %>%  inner_join(income_df, by = c("country", "year"))
