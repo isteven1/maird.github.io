@@ -1,4 +1,4 @@
-# Matthew Aird website
+# CMSC 320 project
 
-Welcome to my website's GitHub page.
+2019 spirng projevt with Ryan Havel, Isabelle Stevens
 
