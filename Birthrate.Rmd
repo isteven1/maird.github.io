@@ -29,6 +29,7 @@ The first step in the data science pipeline is data curation. This means acquiri
     https://www.gapminder.org/data/
 (4) and a dataframe containing life expectancy per country by year from the gapminder library.
 
+
 ```{r warning = FALSE, message = FALSE}
 children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
 children_per_woman_total_fertility
@@ -83,6 +84,8 @@ birthrate_df <- birthrate_df %>%
   inner_join(mortality_df, by = c("country", "year"))
 ```  
 
+For more information on Data Tidying, Garrett Grolemund has an excellent article about it on his GitHub: https://garrettgman.github.io/tidying/
+
 ## 3. Exploratory Data Analysis
 Now that our data has been tidied and formatted correctly, we can begin some of our analysis. Exploratory Data Analysis is a crucial part of the data science pipeline. Here we great visual aids to notice any trends or patterns with the data. This is where we will see if certain attributes affect overall birthrates. 
 Let's look at our original mean and standard deviation before we do any data transformations.
@@ -113,7 +116,7 @@ birthrate_df %>%
     labs(title = "Birthrate vs. Income", x = "Income", y = "Birthrate")
 ```
 
-In the graph above we see that as birthrate increases, income per person decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods. Income per person is a contributing factor to birthrate.
+In the graph above we see that as birthrate increases, income per person decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods. Income per person is a contributing factor to birthrate. As you can see, we took the log of income_per_person. Before transforming this data, the graph was unpresentable and the data points were packed closely together. Taking the log of income_per_person helped spread out the data points while not altering the shape. Generally, a logarithmic transformation is an appropriate transformation to reduce data skew.
 
 
 #### Birthrate vs. Life Expectancy
@@ -151,6 +154,9 @@ birthrate_df %>%
     labs(title = "Birthrate vs. Child Mortality", x = "Child Mortality(percentage)", y = "Birthrate")
 ```
 
+Heres an in depth review of EDA (don't need to read all of it): https://cran.r-project.org/web/packages/dlookr/vignettes/EDA.html
+Heres a shorter, more concise introduction for EDA: https://blog.datascienceheroes.com/exploratory-data-analysis-in-r-intro/
+
 ## 4. Machine Learning
 Linear Model
 $$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy + \beta_5 * ChildMortality$$
@@ -170,4 +176,11 @@ Year vs. Residuals
 augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
 ```
 
+Data Camp offers a really good introduction to Machine Learning in R for beginners: https://www.datacamp.com/community/tutorials/machine-learning-in-r
+
 ## Conclusion
+Congratulations! You can now say you are a data scientist. Together we went through the entire data science pipeline to gain valuable insights on birthrates. Learning something new from working with a dataset is a great feeling. You increase your experience in a wide set of skills and in the end you get rewarded by being smarter than you were before the dataset.
+
+Gapminder has provided us with important information regarding child mortality, income per person, birthrates and life expectancy. With all of this data, we have concluded that various factors that are dependent on country play a role in how many children a woman may have in her lifetime. 
+
+I encourage you to continue the work we've done here and conduct more experiments. Gapminder has a ton of datasets that go well with the ones we have already looked at. Some datasets you might want to look at are "Mean years in school (women of reproductive age 15 to 44)", "Primary school completion (% of girls)", and "Contraceptive use (% of women ages 15-49)." In this tutorial we have made assumptions by saying some countries lack the proper sex education and contraceptive methods compared to other countries. You now have the power to prove whether these factors affect birthrates. Good luck and have fun!
