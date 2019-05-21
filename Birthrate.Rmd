@@ -41,7 +41,7 @@ child_mortality_0_5_year_olds_dying_per_1000_born <- read_csv("child_mortality_0
 head(child_mortality_0_5_year_olds_dying_per_1000_born)
 ```
 
-## Tidying Data
+## 2. Tidying Data
 
 Tidying data is a point in the pipeline where you must change aspects of the datasets to handle missing data and to fit the model of a rectangular data structure. This means that each attribute must form a column, each entity must form a row, and each type of entity must form a table. There are 4 main operations that need to be done to our data in order for our analysis to be accurate:
 
@@ -59,7 +59,7 @@ gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
 ```
 
 
-Secondly, the four data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first three data sets by making year into a singular column and converting the data into a numeric type.
+Secondly, the four data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate, child mortality, and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first three data sets by making year into a singular column and converting the data into a numeric type.
 
 ```{r}
 income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
@@ -124,7 +124,7 @@ birthrate_df %>%
   labs(title="Birth Rate Over Time", x="Year", y="Birth Rate")
 ```
 
-The chart above shows the trend of birthrates over time depending on continent. As we can see both factors have an effect on birthrates. When we try to build a model to predict the birthrate of any given country, having one of these factors and not the other would result in less accurate model and would be less useful
+The chart above shows the trend of birthrates over time depending on continent. As we can see both factors have an effect on birthrates. When we try to build a model to predict the birthrate of any given country, having one of these factors and not the other would result in less accurate model and would be less useful.
 
 
 #### Birthrate vs. Income Per Person
