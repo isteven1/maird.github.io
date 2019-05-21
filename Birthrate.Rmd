@@ -9,7 +9,7 @@ Did you know that over 300,000 babies are born each day? That comes down to over
 Here's A Link For More Fun Facts About Birthrates: https://www.childtrends.org/indicators/fertility-and-birth-rates 
 
 ## Required Libraries
-These libaries are needed to follow along with this tutorial. 
+These libraries are needed to follow along with this tutorial. 
 ```{r, warning = FALSE, message = FALSE}
 library(gapminder)
 library(tidyverse)
