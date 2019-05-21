@@ -112,7 +112,7 @@ plot_data %>%
     labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
 ```
 
-This line plot above shows the downward trend of birthrates as years go by. This can be attributed to improvments in women's education and rights along with the increased access to contraceptive methods around the world.
+This line plot above shows the downward trend of birthrates as years go by. This can be attributed to improvements in women's education and rights along with the increased access to contraceptive methods around the world.
 
 
 #### Birthrate vs. continent over time
