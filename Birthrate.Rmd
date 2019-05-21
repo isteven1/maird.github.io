@@ -51,7 +51,7 @@ Tidying data is a point in the pipeline where you must change aspects of the dat
 3. Joining datasets
 
 
-First, there were several naming inconsistencies with countries where some data sets called Yemem "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
+First, there were several naming inconsistencies with countries where some data sets called Yemen "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
 
 ```{r}
 gapdata$country <- as.character(gapdata$country)
@@ -182,7 +182,7 @@ You may notice that Africa is missing in our model analysis, that is because the
 
 ### 4.3 plotting correctness of model
 
-Now that we've looked at if our factors have an effect on birthrate, we can test it on how accurate it is based on residual values. That means how far off was our model from the actual data point. We do this efficently by graphing our residual value versus the actual value
+Now that we've looked at if our factors have an effect on birthrate, we can test it on how accurate it is based on residual values. That means how far off was our model from the actual data point. We do this efficiently by graphing our residual value versus the actual value
 
 Fitted vs. Residuals
 ```{r warning = FALSE, message = FALSE}
@@ -190,14 +190,14 @@ augmentedData <- fit %>% augment() %>% select(-.se.fit, -.hat, -.sigma, -.cooksd
 augmentedData %>% ggplot(aes(x = .fitted, y = .resid)) + geom_violin()
 ```
 
-This graph shows us that our model is mostly correct with a high freqency at or around zero. This means we predicted (or almost correctly) the correct birthrates for countries.
+This graph shows us that our model is mostly correct with a high frequency at or around zero. This means we predicted (or almost correctly) the correct birthrates for countries.
 
 Year vs. Residuals
 ```{r warning = FALSE, message = FALSE}
 augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
 ```
 
-We further look at the correctness of our model by separating our model by year and we notice that our model still hovers around zero each year but is more spread than previoulsly seen. This could be due to factors we did not account for like education or access to healthcare.
+We further look at the correctness of our model by separating our model by year and we notice that our model still hovers around zero each year but is more spread than previously seen. This could be due to factors we did not account for like education or access to healthcare.
 
 Data Camp offers a really good introduction to Machine Learning in R for beginners: https://www.datacamp.com/community/tutorials/machine-learning-in-r
 
