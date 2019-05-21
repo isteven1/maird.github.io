@@ -59,7 +59,7 @@ gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
 ```
 
 
-Secondly, the three data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first two data sets by making year into a singular column and converting the data into a numeric type.
+Secondly, the four data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first three data sets by making year into a singular column and converting the data into a numeric type.
 
 ```{r}
 income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
@@ -206,4 +206,16 @@ Congratulations! You can now say you are a data scientist. Together we went thro
 
 Gapminder has provided us with important information regarding child mortality, income per person, birthrates and life expectancy. With all of this data, we have concluded that various factors that are dependent on country play a role in how many children a woman may have in her lifetime. 
 
-I encourage you to continue the work we've done here and conduct more experiments. Gapminder has a ton of datasets that go well with the ones we have already looked at. Some datasets you might want to look at are "Mean years in school (women of reproductive age 15 to 44)", "Primary school completion (% of girls)", and "Contraceptive use (% of women ages 15-49)." In this tutorial we have made assumptions by saying some countries lack the proper sex education and contraceptive methods compared to other countries. You now have the power to prove whether these factors affect birthrates. Good luck and have fun!
+We encourage you to continue the work we've done here and conduct more experiments. Gapminder has a ton of datasets that go well with the ones we have already looked at. Some datasets you might want to look at are "Mean years in school (women of reproductive age 15 to 44)", "Primary school completion (% of girls)", and "Contraceptive use (% of women ages 15-49)." In this tutorial we have made assumptions by saying some countries lack the proper sex education and contraceptive methods compared to other countries. You now have the power to prove whether these factors affect birthrates. 
+
+If another subject area interests you there will most likely be a data set on it that you can use to make your own analyses on. Some great websites for finding these datasets are:
+
+1. https://www.gapminder.org/data/
+2. https://www.kaggle.com/datasets
+3. https://registry.opendata.aws/
+
+
+Good luck and have fun!
+
+
+
