@@ -1,33 +1,218 @@
 ---
-title: "Birthrate by country"
+title: "Birthrate by Country"
 author: "Matthew Aird, Isabelle Stevens, Ryan Havel"
 output: html_document
 ---
+## Introduction
+Did you know that over 300,000 babies are born each day? That comes down to over 200 babies a minute all around the world! There is a really good chance that you will have a child during your lifetime. There is also a good chance you will have a second child. But what about a third? A fourth? Luckily for you, we will discuss how many births a woman will have in her lifetime depending on several factors. For our analysis, we have combined three datasets consisting of information about hundreds of countries spanning all of the continents to get to a conclusion. The results are interesting. Keep reading to find out the secrets of birthrates. 
 
-```{r}
+Here's A Link For More Fun Facts About Birthrates: https://www.childtrends.org/indicators/fertility-and-birth-rates 
+
+## Required Libraries
+These libraries are needed to follow along with this tutorial. 
+```{r, warning = FALSE, message = FALSE}
 library(gapminder)
 library(tidyverse)
 library(tidyr)
-gapdata<-data.frame(gapminder)
-
 library(readr)
-children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
-
-income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
-
+library(broom)
 ```
 
-## Tidying Data
+## 1. Gathering Data
+The first step in the data science pipeline is data curation. This means acquiring all the data that we need to perform our analyses, and we can't perform analysis without it. For this example, we are looking at the relationship between a country's birthrate and factors such as GDP, income, and life expectancy for those countries. To do this, we need to pull Gapminder data from four sources:
+
+(1) A CSV file containing birthrate per country by year that can be downloaded from this link under the indicator "Babies per woman":
+    https://www.gapminder.org/data/
+(2) A CSV file containing data on income per person that can be downloaded from this link under the indicator "Income per person":
+    https://www.gapminder.org/data/
+(3) A CSV file containing data on child mortality per 1000 people that can be downloaded from this link under the indicator "Child mortality":
+    https://www.gapminder.org/data/
+(4) and a dataframe containing life expectancy per country by year from the gapminder library.
+
+
+```{r warning = FALSE, message = FALSE}
+children_per_woman_total_fertility <- read_csv("children_per_woman_total_fertility.csv")
+children_per_woman_total_fertility
+income_per_person_gdppercapita_ppp_inflation_adjusted <- read_csv("income_per_person_gdppercapita_ppp_inflation_adjusted.csv")
+income_per_person_gdppercapita_ppp_inflation_adjusted
+gapdata <- data.frame(gapminder)
+head(gapdata)
+child_mortality_0_5_year_olds_dying_per_1000_born <- read_csv("child_mortality_0_5_year_olds_dying_per_1000_born.csv")
+head(child_mortality_0_5_year_olds_dying_per_1000_born)
+```
+
+## 2. Tidying Data
+
+Tidying data is a point in the pipeline where you must change aspects of the datasets to handle missing data and to fit the model of a rectangular data structure. This means that each attribute must form a column, each entity must form a row, and each type of entity must form a table. There are 4 main operations that need to be done to our data in order for our analysis to be accurate:
+
+1. Fixing the country names
+2. Fixing the columns
+3. Transforming numbers
+3. Joining datasets
+
+
+First, there were several naming inconsistencies with countries where some data sets called Yemen "Yemen, Rep." and others just said "Yemen" this had to be fixed so all data could be included into one data set.
 
 ```{r}
-
 gapdata$country <- as.character(gapdata$country)
-
 gapdata$country[gapdata$country == "Yemen, Rep."] <- "Yemen"
-
-income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% gather(year, income_per_person, -country, convert = TRUE)
-
-birthrate_df <- children_per_woman_total_fertility %>% gather(year, birthrate, -country, convert = TRUE) %>% inner_join(gapdata, by = c("country", "year"))  %>%  inner_join(income_df, by = c("country", "year"))
-
 ```
 
+
+Secondly, the four data sets used in this analysis have differing column semantics regarding year values. As you can see from the extensive column list on the birthrate, child mortality, and income per person table, they include the value of each year as its own column. This is not tidy data because the year attribute does not form a single column. This also differs from the gapminder data package which has year as a singular column. We fix this discrepancy by using the gather function. This changes the first three data sets by making year into a singular column and converting the data into a numeric type.
+
+```{r}
+income_df <- income_per_person_gdppercapita_ppp_inflation_adjusted %>% 
+  gather(year, income_per_person, -country, convert = TRUE)
+birthrate_df <- children_per_woman_total_fertility %>% 
+  gather(year, birthrate, -country, convert = TRUE)
+mortality_df <- child_mortality_0_5_year_olds_dying_per_1000_born %>%
+  gather(year, child_mort_per, -country, convert = TRUE)
+```
+
+Then, we need to make our child mortality dataset a percentage. We do this to simplify our data and make it more understandable. To do this, we divide each country by 10 because the original number given is child deaths per 1000 children.
+```{r}
+mortality_df$child_mort_per <- mortality_df$child_mort_per/10
+```
+
+Lastly, we need to join all four tables into a single dataframe to make analysis go more smoothly. 
+
+```{r warning = FALSE, message = FALSE}
+birthrate_df <- birthrate_df %>% 
+  inner_join(gapdata, by = c("country", "year"))  %>%  
+  inner_join(income_df, by = c("country", "year")) %>%
+  inner_join(mortality_df, by = c("country", "year"))
+```  
+
+For more information on Data Tidying, Garrett Grolemund has an excellent article about it on his GitHub: https://garrettgman.github.io/tidying/
+
+## 3. Exploratory Data Analysis
+Now that our data has been tidied and formatted correctly, we can begin some of our analysis. Exploratory Data Analysis is a crucial part of the data science pipeline. Here we great visual aids to notice any trends or patterns with the data. This is where we will see if certain attributes affect overall birthrates. 
+
+
+### 3.1 Factors to consider
+Here we look at several analyses that try to understand what factors lead to the increase or decrease in a country's birthrate.
+
+#### Birthrate vs. Continent 
+```{r}
+birthrate_df %>%
+  ggplot(aes(x=continent, y=birthrate)) +
+  geom_violin() + 
+  labs(title="Birth Rate versus Continent", x="Continent", y="Birth Rate")
+```
+
+This violin graph above shows the spread of birthrate depending on the continent. As you can see countries like Europe and Oceania have a high frequency of low birthrates. While Africa has a high frequency for high birthrates. The Americas and Asia have a spread of almost equal frequency for both high and low birthrates. This chart shows that continent has an effect on birthrates with these large differences. This can be attributed to either differing regional government bodies or governments in the same region having the same amount of wealth or political system or even differing regional cultures. This would subsequently have an effect on access to contraceptive healthcare and education.  
+
+#### Average Birthrate vs. year
+```{r warning = FALSE, message = FALSE}
+plot_data <- group_by(birthrate_df, year) %>% summarize(mean_birth = mean(birthrate)) 
+plot_data %>%
+    ggplot(aes(x = year, y = mean_birth)) + 
+    geom_smooth() +
+    labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
+```
+
+This line plot above shows the downward trend of birthrates as years go by. This can be attributed to improvments in women's education and rights along with the increased access to contraceptive methods around the world.
+
+
+#### Birthrate vs. continent over time
+```{r}
+birthrate_df %>%
+  ggplot(aes(x= year, y=birthrate, color = continent)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title="Birth Rate Over Time", x="Year", y="Birth Rate")
+```
+
+The chart above shows the trend of birthrates over time depending on continent. As we can see both factors have an effect on birthrates. When we try to build a model to predict the birthrate of any given country, having one of these factors and not the other would result in less accurate model and would be less useful.
+
+
+#### Birthrate vs. Income Per Person
+```{r warning = FALSE, message = FALSE}
+birthrate_df %>% 
+    ggplot(aes(x = log10(income_per_person), y = birthrate)) + 
+    geom_point() + geom_smooth(lm=loess) +
+    labs(title = "Birthrate vs. Income", x = "Income", y = "Birthrate")
+```
+
+In the graph above we see that as income per person increases, birthrate decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods. Income per person is a contributing factor to birthrate. There does exists several outliers in our data when income increases and these could be attributed to large wealth gaps in a country's population which means poor people are not counted properly and only reflected in a high birthrate. Another explanation for these outliers could be there exists a strong culture of motherhood which keeps the birthrate high regardless of income.
+
+
+#### Birthrate vs. Life Expectancy
+```{r warning = FALSE, message = FALSE}
+birthrate_df %>% 
+    ggplot(aes(x = lifeExp, y = birthrate)) + 
+    geom_point() + geom_smooth(lm=loess) +
+    labs(title = "Birthrate vs. Life Expectancy", x = "Life Expectancy", y = "Birthrate")
+```
+
+The above graph compares birthrate and life expectancy. Our initial intuition is that life expectancy would affect birthrates. Holding birthrate as our independent variable, it seems that the life expectancy decreases as birthrates increase in a linear fashion. This is an interesting trend that makes sense. As mentioned before, many third-world countries tend to have lower life expectancies. These countries don't have access to the many contraceptive methods and education that more developed nations have. Overall, Life Expectancy seems to be a good contributing factor to birthrate.
+
+
+#### Birthrate vs. Child Mortality
+```{r warning = FALSE, message = FALSE}
+birthrate_df %>% 
+    ggplot(aes(x = child_mort_per, y = birthrate)) + 
+    geom_point() + geom_smooth(lm = loess) +
+    labs(title = "Birthrate vs. Child Mortality", x = "Child Mortality(percentage)", y = "Birthrate")
+```
+
+A final factor we wanted to analyze was a country's child mortality rate and its effect on birthrate. As one can see from the chart above, as a country's child mortality increases, so does the birthrate to an extent. At about the 20% mark, a country's birthrate stabilizes. This could be due to how women tend physically not have more children or enough children have survived to stop trying to birth more children.
+
+
+## 4. Machine Learning
+
+### 4.1 Creating a model
+Linear Model
+$$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy + \beta_5 * ChildMortality$$
+We have taken the factors that we analyzed earlier to now create a model that can predict a country's birthrate depending on it's continent, what year it is, the Income of a person in that country, that country's life expectancy that year, and the child mortality rate that year.
+
+### 4.2 Hypothesis testing on model
+
+```{r warning = FALSE, message = FALSE}
+fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp + child_mort_per, data = birthrate_df)
+broom::tidy(fit) %>% knitr::kable() 
+```
+
+We then test the model we created to see if all the factors allow us to reject the null hypothesis. That means if we reject the null hypothesis that a certain factor does actually have an effect on a country's birthrate. The way to determine this is through a factor's p-value, if it is below 0.05 then it is statistically significant in a country's birthrate. If it is above 0.05 then we can not be certain if a factor actually has an effect on a country's birthrate.
+
+As you can see from the table above, only the income per person variable has a p-value above 0.05 which means we can not be certain if our income variable has an effect on a country's birthrate. While all the other variables have a p-value below 0.05 which means we can reject the null hypothesis for those variables.
+
+You may notice that Africa is missing in our model analysis, that is because the continent variable is categorical and thus the rest of the possible continents in our model analysis are just the amount a country's birthrate would change if it were on that continent versus Africa.
+
+### 4.3 plotting correctness of model
+
+Now that we've looked at if our factors have an effect on birthrate, we can test it on how accurate it is based on residual values. That means how far off was our model from the actual data point. We do this efficiently by graphing our residual value versus the actual value
+
+Fitted vs. Residuals
+```{r warning = FALSE, message = FALSE}
+augmentedData <- fit %>% augment() %>% select(-.se.fit, -.hat, -.sigma, -.cooksd, -.std.resid)
+augmentedData %>% ggplot(aes(x = .fitted, y = .resid)) + geom_violin()
+```
+
+This graph shows us that our model is mostly correct with a high frequency at or around zero. This means we predicted (or almost correctly) the correct birthrates for countries.
+
+Year vs. Residuals
+```{r warning = FALSE, message = FALSE}
+augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
+```
+
+We further look at the correctness of our model by separating our model by year and we notice that our model still hovers around zero each year but is more spread than previously seen. This could be due to factors we did not account for like education or access to healthcare.
+
+Data Camp offers a really good introduction to Machine Learning in R for beginners: https://www.datacamp.com/community/tutorials/machine-learning-in-r
+
+## Conclusion
+Congratulations! You can now say you are a data scientist. Together we went through the entire data science pipeline to gain valuable insights on birthrates. Learning something new from working with a dataset is a great feeling. You increase your experience in a wide set of skills and in the end you get rewarded by being smarter than you were before the dataset.
+
+Gapminder has provided us with important information regarding child mortality, income per person, birthrates and life expectancy. With all of this data, we have concluded that various factors that are dependent on country play a role in how many children a woman may have in her lifetime. 
+
+We encourage you to continue the work we've done here and conduct more experiments. Gapminder has a ton of datasets that go well with the ones we have already looked at. Some datasets you might want to look at are "Mean years in school (women of reproductive age 15 to 44)", "Primary school completion (% of girls)", and "Contraceptive use (% of women ages 15-49)." In this tutorial we have made assumptions by saying some countries lack the proper sex education and contraceptive methods compared to other countries. You now have the power to prove whether these factors affect birthrates. 
+
+If another subject area interests you there will most likely be a data set on it that you can use to make your own analyses on. Some great websites for finding these datasets are:
+
+1. https://www.gapminder.org/data/
+2. https://www.kaggle.com/datasets
+3. https://registry.opendata.aws/
+
+
+Good luck and have fun!
