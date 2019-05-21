@@ -19,7 +19,7 @@ library(broom)
 ```
 
 ## 1. Gathering Data
-The first step in the data science pipeline is data curation. This means acquiring all the data that we need to perform our analyses, and we can't perform analysis without it. For this example, we are looking at the relationship between a country's birthrate and factors such as GDP, income, and life expectancy for those countries. To do this, we need to pull Gapminder data from three sources:
+The first step in the data science pipeline is data curation. This means acquiring all the data that we need to perform our analyses, and we can't perform analysis without it. For this example, we are looking at the relationship between a country's birthrate and factors such as GDP, income, and life expectancy for those countries. To do this, we need to pull Gapminder data from four sources:
 
 (1) A CSV file containing birthrate per country by year that can be downloaded from this link under the indicator "Babies per woman":
     https://www.gapminder.org/data/
@@ -70,7 +70,7 @@ mortality_df <- child_mortality_0_5_year_olds_dying_per_1000_born %>%
   gather(year, child_mort_per, -country, convert = TRUE)
 ```
 
-Then, we need to make our child mortality dataset a percentage. We do this to simplify our data and make it more understandable. To do this, we divide each country by 1000 because the original number given is child deaths per 1000 children.
+Then, we need to make our child mortality dataset a percentage. We do this to simplify our data and make it more understandable. To do this, we divide each country by 10 because the original number given is child deaths per 1000 children.
 ```{r}
 mortality_df$child_mort_per <- mortality_df$child_mort_per/10
 ```
@@ -88,14 +88,7 @@ For more information on Data Tidying, Garrett Grolemund has an excellent article
 
 ## 3. Exploratory Data Analysis
 Now that our data has been tidied and formatted correctly, we can begin some of our analysis. Exploratory Data Analysis is a crucial part of the data science pipeline. Here we great visual aids to notice any trends or patterns with the data. This is where we will see if certain attributes affect overall birthrates. 
-Let's look at our original mean and standard deviation before we do any data transformations.
 
-```{r}
-mean_birth <- mean(birthrate_df$birthrate)
-mean_birth
-std_birth <- sd(birthrate_df$birthrate)
-std_birth
-```
 
 ### 3.1 Factors to consider
 Here we look at several analyses that try to understand what factors lead to the increase or decrease in a country's birthrate.
@@ -108,6 +101,32 @@ birthrate_df %>%
   labs(title="Birth Rate versus Continent", x="Continent", y="Birth Rate")
 ```
 
+This violin graph above shows the spread of birthrate depending on the continent. As you can see countries like Europe and Oceania have a high frequency of low birthrates. While Africa has a high frequency for high birthrates. The Americas and Asia have a spread of almost equal frequency for both high and low birthrates. This chart shows that continent has an effect on birthrates with these large differences. This can be attributed to either differing regional government bodies or governments in the same region having the same amount of wealth or political system or even differing regional cultures. This would subsequently have an effect on access to contraceptive healthcare and education.  
+
+#### Average Birthrate vs. year
+```{r warning = FALSE, message = FALSE}
+plot_data <- group_by(birthrate_df, year) %>% summarize(mean_birth = mean(birthrate)) 
+plot_data %>%
+    ggplot(aes(x = year, y = mean_birth)) + 
+    geom_smooth() +
+    labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
+```
+
+This line plot above shows the downward trend of birthrates as years go by. This can be attributed to improvments in women's education and rights along with the increased access to contraceptive methods around the world.
+
+
+#### Birthrate vs. continent over time
+```{r}
+birthrate_df %>%
+  ggplot(aes(x= year, y=birthrate, color = continent)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title="Birth Rate Over Time", x="Year", y="Birth Rate")
+```
+
+The chart above shows the trend of birthrates over time depending on continent. As we can see both factors have an effect on birthrates. When we try to build a model to predict the birthrate of any given country, having one of these factors and not the other would result in less accurate model and would be less useful
+
+
 #### Birthrate vs. Income Per Person
 ```{r warning = FALSE, message = FALSE}
 birthrate_df %>% 
@@ -116,7 +135,7 @@ birthrate_df %>%
     labs(title = "Birthrate vs. Income", x = "Income", y = "Birthrate")
 ```
 
-In the graph above we see that as birthrate increases, income per person decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods. Income per person is a contributing factor to birthrate. As you can see, we took the log of income_per_person. Before transforming this data, the graph was unpresentable and the data points were packed closely together. Taking the log of income_per_person helped spread out the data points while not altering the shape. Generally, a logarithmic transformation is an appropriate transformation to reduce data skew.
+In the graph above we see that as income per person increases, birthrate decreases. This could point to a theory that lower income countries have higher birthrates due to lack of education, no family planning resources and no widely available contraception methods. Income per person is a contributing factor to birthrate. There does exists several outliers in our data when income increases and these could be attributed to large wealth gaps in a country's population which means poor people are not counted properly and only reflected in a high birthrate. Another explanation for these outliers could be there exists a strong culture of motherhood which keeps the birthrate high regardless of income.
 
 
 #### Birthrate vs. Life Expectancy
@@ -129,22 +148,6 @@ birthrate_df %>%
 
 The above graph compares birthrate and life expectancy. Our initial intuition is that life expectancy would affect birthrates. Holding birthrate as our independent variable, it seems that the life expectancy decreases as birthrates increase in a linear fashion. This is an interesting trend that makes sense. As mentioned before, many third-world countries tend to have lower life expectancies. These countries don't have access to the many contraceptive methods and education that more developed nations have. Overall, Life Expectancy seems to be a good contributing factor to birthrate.
 
-#### Average Birthrate vs. year
-```{r warning = FALSE, message = FALSE}
-plot_data <- group_by(birthrate_df, year) %>% summarize(mean_birth = mean(birthrate)) 
-plot_data %>%
-    ggplot(aes(x = year, y = mean_birth)) + 
-    geom_smooth() +
-    labs(title = "Mean Birthrate vs. year", x = "Year", y = "Mean Birthrate")
-```
-
-```{r}
-birthrate_df %>%
-  ggplot(aes(x= year, y=birthrate, color = continent)) +
-  geom_point() +
-  geom_smooth() +
-  labs(title="Birth Rate Over Time", x="Year", y="Birth Rate")
-```
 
 #### Birthrate vs. Child Mortality
 ```{r warning = FALSE, message = FALSE}
@@ -154,16 +157,32 @@ birthrate_df %>%
     labs(title = "Birthrate vs. Child Mortality", x = "Child Mortality(percentage)", y = "Birthrate")
 ```
 
-Heres an in depth review of EDA (don't need to read all of it): https://cran.r-project.org/web/packages/dlookr/vignettes/EDA.html
-Heres a shorter, more concise introduction for EDA: https://blog.datascienceheroes.com/exploratory-data-analysis-in-r-intro/
+A final factor we wanted to analyze was a country's child mortality rate and its effect on birthrate. As one can see from the chart above, as a country's child mortality increases, so does the birthrate to an extent. At about the 20% mark, a country's birthrate stabilizes. This could be due to how women tend physically not have more children or enough children have survived to stop trying to birth more children.
+
 
 ## 4. Machine Learning
+
+### 4.1 Creating a model
 Linear Model
 $$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy + \beta_5 * ChildMortality$$
+We have taken the factors that we analyzed earlier to now create a model that can predict a country's birthrate depending on it's continent, what year it is, the Income of a person in that country, that country's life expectancy that year, and the child mortality rate that year.
+
+### 4.2 Hypothesis testing on model
+
 ```{r warning = FALSE, message = FALSE}
 fit <- lm(birthrate ~ year + continent + income_per_person + lifeExp + child_mort_per, data = birthrate_df)
 broom::tidy(fit) %>% knitr::kable() 
 ```
+
+We then test the model we created to see if all the factors allow us to reject the null hypothesis. That means if we reject the null hypothesis that a certain factor does actually have an effect on a country's birthrate. The way to determine this is through a factor's p-value, if it is below 0.05 then it is statistically significant in a country's birthrate. If it is above 0.05 then we can not be certain if a factor actually has an effect on a country's birthrate.
+
+As you can see from the table above, only the income per person variable has a p-value above 0.05 which means we can not be certain if our income variable has an effect on a country's birthrate. While all the other variables have a p-value below 0.05 which means we can reject the null hypothesis for those variables.
+
+You may notice that Africa is missing in our model analysis, that is because the continent variable is categorical and thus the rest of the possible continents in our model analysis are just the amount a country's birthrate would change if it were on that continent versus Africa.
+
+### 4.3 plotting correctness of model
+
+Now that we've looked at if our factors have an effect on birthrate, we can test it on how accurate it is based on residual values. That means how far off was our model from the actual data point. We do this efficently by graphing our residual value versus the actual value
 
 Fitted vs. Residuals
 ```{r warning = FALSE, message = FALSE}
@@ -171,10 +190,14 @@ augmentedData <- fit %>% augment() %>% select(-.se.fit, -.hat, -.sigma, -.cooksd
 augmentedData %>% ggplot(aes(x = .fitted, y = .resid)) + geom_violin()
 ```
 
+This graph shows us that our model is mostly correct with a high freqency at or around zero. This means we predicted (or almost correctly) the correct birthrates for countries.
+
 Year vs. Residuals
 ```{r warning = FALSE, message = FALSE}
 augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
 ```
+
+We further look at the correctness of our model by separating our model by year and we notice that our model still hovers around zero each year but is more spread than previoulsly seen. This could be due to factors we did not account for like education or access to healthcare.
 
 Data Camp offers a really good introduction to Machine Learning in R for beginners: https://www.datacamp.com/community/tutorials/machine-learning-in-r
 
