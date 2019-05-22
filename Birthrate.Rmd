@@ -16,6 +16,11 @@ library(tidyverse)
 library(tidyr)
 library(readr)
 library(broom)
+library(randomForest)
+library(rpart)
+library("rpart.plot")
+library(cvTools)
+library(dplyr)
 ```
 
 ## 1. Gathering Data
@@ -162,8 +167,8 @@ A final factor we wanted to analyze was a country's child mortality rate and its
 
 ## 4. Machine Learning
 
-### 4.1 Creating a model
-Linear Model
+### 4.1 Creating a Linear Regression Model
+Linear Model:
 $$Birth Rate = \beta_0 + \beta_1 * Continent + \beta_2 * Year + \beta_3 * IncomePerPerson + \beta_4 * Life Expectancy + \beta_5 * ChildMortality$$
 We have taken the factors that we analyzed earlier to now create a model that can predict a country's birthrate depending on it's continent, what year it is, the Income of a person in that country, that country's life expectancy that year, and the child mortality rate that year.
 
@@ -199,7 +204,103 @@ augmentedData %>% ggplot(aes(x = factor(year), y = .resid)) + geom_violin()
 
 We further look at the correctness of our model by separating our model by year and we notice that our model still hovers around zero each year but is more spread than previously seen. This could be due to factors we did not account for like education or access to healthcare.
 
-Data Camp offers a really good introduction to Machine Learning in R for beginners: https://www.datacamp.com/community/tutorials/machine-learning-in-r
+### 4.4 Tree Based Methods
+So far we have seen one kind of data model: linear regression. However, this type of model has some shortcomings which can limit prediction ability. For instance, although our linear regression model is mostly correct in predicting fertility rates, the changes in rates over different predictors are not strictly linear relationships. As data scientists, we want to see what other kinds of models are out there so that we can choose the best one for our dataset. This section details some different tree based methods that might yield better results for a model. 
+
+#### 4.4.1 Regression Trees
+Regression trees, commonly referred to as decision trees, partition the data based on density in a region as opposed to strict, uniform cutoffs across a predictor. One large advantage of this model is that it can be done recursively, leading to a logical, alternate name of "recursive partitioning".
+
+
+Let's start out by creating a regression tree based on the same variables we used in the linear model. 
+```{r}
+reg_tree <- rpart(birthrate ~ year + continent + income_per_person + lifeExp + child_mort_per, 
+                  data = birthrate_df)
+rpart.plot(reg_tree)
+```
+
+The way we interpret this regression tree is that we first choose a country to predict their fertility rate and then we follow the tree, choosing the direction which applies. For instance, let us try to predict the fertility rate for Zimbabwe in 2002. We start at the top of the tree, which asks the life expectancy of Zimbabwe at this time. From our dataset, we can see that the life expectancy is 39.989, which is _not_ >= 64, therefore we go right to the "no" subtree. The next condition in the tree is whether the child mortality rate is less than 14 percent. The child mortality rate in Zimbabwe at this time was 9.77%, so we go left to the "yes" subtree. This yes-left, no-right relation holds for the entire tree. Lastly, we check if the year is >= 1985, which is true because the year is 2002, so we go left. We are then given an estimate of 4.9 for the number of children per woman. The actual number at this time was 4.0. So we can see that, although the estimate is not perfect, it gives a good view of where a country approximately lands in terms of fertility rate.
+
+####4.4.2 Random Forests
+Another tree based method is Random Forests. This method attempts to improve prediction performance by averaging multiple decision trees, such as the one we created in the previous step. 
+
+Let's begin by creating a random forest based on the same attributes that we have been using in the previous models by sampling the data. 
+```{r}
+set.seed(1234)
+train_indices <- sample(nrow(birthrate_df), nrow(birthrate_df)/2)
+train_set <- birthrate_df[train_indices,]
+
+training_rf <- randomForest(birthrate ~ year + continent + income_per_person + lifeExp +
+                              child_mort_per, 
+                            importance=TRUE, 
+                            mtry=3, 
+                            data=train_set)
+plot(training_rf, main="Trees in Random Forest vs Error")
+```
+
+Based on this graph, which plots the error rate depending on the number of trees used, the fewer trees used the worse the error rate is. However, for efficiency we don't want to use too many trees either. We can see from this graph that the curve starts leveling out at around 150 trees, so that would be the optimal number of trees to create a random forest.
+
+
+Random forests also allow us to see the levels of importance of the different predictors. As we can see from the table below, year and continent have the highest level of importance, and therefore impact on birthrate.
+```{r}
+variable_importance <- importance(training_rf)
+knitr::kable(round(variable_importance, digits=2))
+```
+
+### 4.5 Model Selection
+Now that we know a few different ways to model the data, we want to choose which model is best! There are a few different ways we can do this, the method we are going to walk through is called cross-validation, and we are using a paired t-test with the two types of tree methods that we learned: decision trees and random forests.
+
+```{r}
+mean <- mean(birthrate_df$birthrate)
+birthrate_df <- birthrate_df %>% 
+  mutate(high_birth = ifelse(birthrate > mean, "Yes", "No"))
+
+fold_indices <- cvFolds(n=nrow(birthrate_df), K=10)
+
+error_rates <- sapply(1:10, function(fold_index) {
+  test_indices <- which(fold_indices$which == fold_index)
+  test_set <- birthrate_df[test_indices,]
+  train_set <- birthrate_df[-test_indices,]
+  
+  # Making the decision tree model
+  dec_fit <- rpart(birthrate ~ year + continent + income_per_person + lifeExp + child_mort_per, 
+                  data = train_set)
+  dec_pred <- ifelse(rpart.predict(dec_fit, newdata=test_set) > mean, "Yes", "No")
+  dec_error <- mean(test_set$high_birth != dec_pred)
+  
+  # Making the random forest model
+  rf_fit <- randomForest(birthrate ~ year + continent + income_per_person + lifeExp +
+                              child_mort_per, 
+                            importance=TRUE, 
+                            mtry=3, 
+                            data=train_set)
+  rf_pred <- ifelse(predict(rf_fit, newdata = test_set) > mean, "Yes", "No")
+  rf_error <- mean(test_set$high_birth != rf_pred)
+  
+  c(dec_error, rf_error)
+  })
+
+rownames(error_rates) <- c("decision tree", "random forest")
+error_rates <- as.data.frame(t(error_rates))
+
+error_rates <- error_rates %>%
+  mutate(fold=1:n()) %>%
+  gather(method,error,-fold)
+
+error_rates %>%
+  head() %>%
+  knitr::kable("html")
+```
+
+
+```{r}
+dotplot(error~method, data=error_rates, ylab="Mean Prediction Error")
+```
+
+As we can see from the plot above, the decision tree has a slightly higher error rate than the random forest, thus we can conclude that the random forest method would be a more suitable model for this dataset. 
+
+
+For more information on Machine Learning, Data Camp offers a great introduction in R for beginners which includes even more data models! The site can be found here: https://www.datacamp.com/community/tutorials/machine-learning-in-r
+
 
 ## Conclusion
 Congratulations! You can now say you are a data scientist. Together we went through the entire data science pipeline to gain valuable insights on birthrates. Learning something new from working with a dataset is a great feeling. You increase your experience in a wide set of skills and in the end you get rewarded by being smarter than you were before the dataset.
